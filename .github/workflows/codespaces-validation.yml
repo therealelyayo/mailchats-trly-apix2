@@ -24,10 +24,21 @@ jobs:
           fi
           echo "devcontainer.json is valid JSON"
           
+      # Install Docker Compose
+      - name: Install Docker Compose
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker-compose-plugin docker-compose
+          echo "Docker Compose V2 version:"
+          docker compose version || echo "Docker Compose V2 not available"
+          echo "Docker Compose V1 version:"
+          docker-compose --version || echo "Docker Compose V1 not available"
+          
       - name: Validate docker-compose.yml
         run: |
           cd .devcontainer
-          docker-compose config
+          # Try Docker Compose V2 first, fall back to V1 if needed
+          docker compose config || docker-compose config
           
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2

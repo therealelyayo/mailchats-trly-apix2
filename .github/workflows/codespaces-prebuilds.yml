@@ -20,6 +20,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      # Install Docker Compose
+      - name: Install Docker Compose
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker-compose-plugin docker-compose
+          echo "Docker Compose V2 version:"
+          docker compose version || echo "Docker Compose V2 not available"
+          echo "Docker Compose V1 version:"
+          docker-compose --version || echo "Docker Compose V1 not available"
+
       - name: Set up GitHub CLI
         run: |
           wget https://github.com/cli/cli/releases/download/v2.23.0/gh_2.23.0_linux_amd64.deb

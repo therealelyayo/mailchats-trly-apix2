@@ -129,7 +129,16 @@ Codespaces can also be used to deploy the application to production:
    docker build -t mailchats-trly-apix2:latest .
    ```
 
-2. Follow the deployment guides in the `deployment` directory for your target environment.
+2. For local testing with Docker Compose:
+   ```bash
+   # Modern Docker installations use this syntax
+   docker compose up
+   
+   # Legacy Docker Compose installations use this syntax
+   docker-compose up
+   ```
+
+3. Follow the deployment guides in the `deployment` directory for your target environment.
 
 ## Troubleshooting
 
@@ -140,6 +149,24 @@ If the Codespace container fails to start:
 1. Try creating a new Codespace
 2. Check the logs in the "Creation Log" tab
 3. Verify that your devcontainer configuration is valid
+
+### Docker Compose Version Compatibility
+
+This project supports both modern and legacy Docker Compose syntax:
+
+- Modern Docker installations (Docker Compose V2):
+  ```bash
+  docker compose config
+  docker compose up
+  ```
+
+- Legacy Docker Compose installations (Docker Compose V1):
+  ```bash
+  docker-compose config
+  docker-compose up
+  ```
+
+If you encounter an error with one version, try the other syntax based on your Docker installation.
 
 ### Application Cannot Connect to Database
 
