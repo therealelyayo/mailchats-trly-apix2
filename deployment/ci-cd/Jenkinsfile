@@ -1,0 +1,94 @@
+pipeline {
+    agent any
+    
+    environment {
+        DOCKER_HUB_CREDS = credentials('docker-hub-credentials')
+        STAGING_SSH_CREDS = credentials('staging-ssh-credentials')
+        PRODUCTION_SSH_CREDS = credentials('production-ssh-credentials')
+        IMAGE_NAME = 'therealelyayo/mailchats-trly-apix2'
+        IMAGE_TAG = "${env.BUILD_NUMBER}"
+    }
+    
+    stages {
+        stage('Test') {
+            agent {
+                docker {
+                    image 'node:18'
+                    args '-v $HOME/.npm:/root/.npm'
+                }
+            }
+            
+            steps {
+                dir('app') {
+                    sh 'npm ci'
+                    sh 'npm test'
+                }
+            }
+        }
+        
+        stage('Build and Push Docker Image') {
+            steps {
+                sh 'docker build -t $IMAGE_NAME:$IMAGE_TAG -t $IMAGE_NAME:latest .'
+                
+                sh 'echo $DOCKER_HUB_CREDS_PSW | docker login -u $DOCKER_HUB_CREDS_USR --password-stdin'
+                sh 'docker push $IMAGE_NAME:$IMAGE_TAG'
+                sh 'docker push $IMAGE_NAME:latest'
+            }
+        }
+        
+        stage('Deploy to Staging') {
+            steps {
+                sshagent(credentials: ['staging-ssh-credentials']) {
+                    sh '''
+                        ssh -o StrictHostKeyChecking=no $STAGING_SSH_CREDS_USR@$STAGING_HOST "
+                            cd /opt/mailchats && 
+                            docker-compose pull && 
+                            docker-compose up -d && 
+                            docker system prune -af
+                        "
+                    '''
+                }
+            }
+        }
+        
+        stage('Deploy to Production') {
+            input {
+                message "Deploy to production?"
+                ok "Yes, deploy to production"
+            }
+            
+            steps {
+                sshagent(credentials: ['production-ssh-credentials']) {
+                    sh '''
+                        ssh -o StrictHostKeyChecking=no $PRODUCTION_SSH_CREDS_USR@$PRODUCTION_HOST "
+                            cd /opt/mailchats && 
+                            docker-compose pull && 
+                            docker-compose up -d && 
+                            docker system prune -af
+                        "
+                    '''
+                }
+            }
+        }
+    }
+    
+    post {
+        success {
+            slackSend (
+                color: '#00FF00',
+                message: "SUCCESSFUL: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})"
+            )
+        }
+        
+        failure {
+            slackSend (
+                color: '#FF0000',
+                message: "FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})"
+            )
+        }
+        
+        always {
+            cleanWs()
+        }
+    }
+}
