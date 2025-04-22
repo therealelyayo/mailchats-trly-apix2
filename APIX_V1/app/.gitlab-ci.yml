@@ -1,0 +1,64 @@
+image: node:20
+
+stages:
+  - test
+  - build
+  - deploy
+
+variables:
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: postgres
+  POSTGRES_DB: testdb
+  DATABASE_URL: postgresql://postgres:postgres@postgres:5432/testdb
+  NODE_ENV: test
+
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - node_modules/
+
+services:
+  - postgres:15
+
+test:
+  stage: test
+  before_script:
+    - npm ci
+  script:
+    - npm run check
+    - npm run test:ci
+
+build:
+  stage: build
+  needs: [test]
+  before_script:
+    - npm ci
+  script:
+    - npm run build:full
+  artifacts:
+    paths:
+      - dist/
+      - client/dist/
+
+deploy_development:
+  stage: deploy
+  needs: [build]
+  script:
+    - npm install -g firebase-tools
+    - firebase use development
+    - firebase deploy --only hosting
+  only:
+    - development
+  when: manual
+
+deploy_production:
+  stage: deploy
+  needs: [build]
+  script:
+    - npm install -g firebase-tools
+    - firebase use production
+    - firebase deploy --only hosting
+  only:
+    - main
+    - master
+  when: manual
