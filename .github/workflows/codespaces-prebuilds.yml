@@ -1,0 +1,49 @@
+name: GitHub Codespaces Prebuilds
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - '.devcontainer/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'app/package.json'
+      - 'app/package-lock.json'
+  schedule:
+    - cron: '0 0 * * 0'  # Run weekly at midnight on Sunday
+
+jobs:
+  prebuild:
+    name: Create Codespaces Prebuild
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up GitHub CLI
+        run: |
+          wget https://github.com/cli/cli/releases/download/v2.23.0/gh_2.23.0_linux_amd64.deb
+          sudo dpkg -i gh_2.23.0_linux_amd64.deb
+          rm gh_2.23.0_linux_amd64.deb
+
+      - name: Create/Update Prebuild
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Check if a prebuild already exists
+          PREBUILD_EXISTS=$(gh api repos/${{ github.repository }}/codespaces/prebuild-configurations -q 'length([])')
+          
+          if [ "$PREBUILD_EXISTS" -eq "0" ]; then
+            echo "Creating new prebuild configuration"
+            gh api --method POST repos/${{ github.repository }}/codespaces/prebuild-configurations \
+              -f default_region="usWest2" \
+              -f location_type="Repository" \
+              -f storage_type="Optimized" \
+              -f retention_period_days=30 \
+              -f prebuild_machines="basicLinux32gb" \
+              -f branch="main"
+          else
+            echo "Prebuild configuration already exists, triggering a rebuild"
+            PREBUILD_ID=$(gh api repos/${{ github.repository }}/codespaces/prebuild-configurations -q '.[0].id')
+            gh api --method POST repos/${{ github.repository }}/codespaces/prebuild-configurations/$PREBUILD_ID/trigger
+          fi
