@@ -1,0 +1,35 @@
+# codespaces-prebuild.yml
+# This configuration specifies how GitHub Codespaces should prebuild containers to improve startup times
+# See: https://docs.github.com/en/codespaces/prebuilding-your-codespaces/about-github-codespaces-prebuilds
+
+prebuilds:
+  # Enable prebuilding for all branches in this repository
+  main: true
+  # Optionally, add other branches
+  # branches:
+  #   - development
+  
+  # add a prebuild for pull requests coming from this repository
+  pullRequests: true
+  
+  # add a prebuild for pull requests coming from forks
+  pullRequestsFromForks: true
+  
+  # automatically install Dependabot updates when detected
+  addDependabotBadges: true
+  
+  # enable prebuilds to be pulled before a commit has been made to the branch
+  addBadges: true
+  
+  # specify if prebuild image should be stored in an optimized format
+  # recommended for public repositories
+  optimization:
+    enabled: true
+    maximumRetention: 30
+    
+  # automatically rebuild on file changes (helps keep the prebuild up to date)
+  # this is especially useful when dependency files change frequently
+  updateFiles:
+    - package.json
+    - package-lock.json
+    - .devcontainer/devcontainer.json
