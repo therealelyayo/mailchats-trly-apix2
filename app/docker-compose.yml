@@ -1,0 +1,82 @@
+version: '3.8'
+
+services:
+  # PostgreSQL database
+  postgres:
+    image: postgres:14-alpine
+    container_name: mailchats-db
+    restart: always
+    environment:
+      # These values should match DATABASE_URL in .env
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: mailchats
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # MailChats Trly APIX2 application
+  mailchats:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mailchats-app
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+    # The environment variables here will be overridden by those in your .env file
+    # This serves as a fallback and documentation of available options
+    environment:
+      # Application Settings
+      NODE_ENV: production
+      PORT: 3000
+      
+      # Database Settings
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/mailchats
+      SESSION_SECRET: mailchats_dev_session_secret_change_for_production
+      
+      # API Keys
+      # DeepSeek API for AI-powered features
+      DEEPSEEK_API_KEY: sk-68164fe1bfa24579a23d6943b1aafa7a
+      # OPENAI_API_KEY: 
+      
+      # Email Configuration - Using MailChats SMTP Server
+      SMTP_HOST: mail.mailchats.com
+      SMTP_PORT: 587
+      SMTP_USERNAME: io@mailchats.com
+      SMTP_PASSWORD: Chi@3454@@ch
+      SMTP_FROM_EMAIL: io@mailchats.com
+      SMTP_FROM_NAME: MailChats Trly APIX2
+      
+      # Default Login Values
+      DEFAULT_LOGIN_EMAIL: therealelyayo@sent.com
+      DEFAULT_USER_PASSWORD: securepassword123
+      
+      # Advanced Configuration
+      MAX_BATCH_SIZE: 50
+      ENHANCED_LOGGING: "true"
+      DISABLE_ANALYTICS: "false"
+      
+      # Security Settings
+      REQUIRE_HTTPS: "false"
+      ALLOWED_ORIGINS: "*"
+      RATE_LIMIT: 120
+    ports:
+      - "3000:3000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  postgres_data:
+    driver: local

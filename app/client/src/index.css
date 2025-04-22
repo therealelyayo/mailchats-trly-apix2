@@ -1,0 +1,124 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Basic animations */
+@keyframes pulse {
+  0% { opacity: 0; }
+  5% { opacity: 0.3; }
+  10% { opacity: 0; }
+  100% { opacity: 0; }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes fade {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@layer base {
+  :root {
+    --success-color: #16a34a; /* Green 600 */
+    --error-color: #dc2626;   /* Red 600 */
+    --primary-color: #6941C6;  /* Default primary color */
+  }
+  
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased text-foreground bg-background;
+  }
+  
+  /* Basic Typography */
+  h1 {
+    @apply text-4xl font-semibold tracking-tight;
+  }
+  
+  h2 {
+    @apply text-3xl font-semibold tracking-tight;
+  }
+  
+  h3 {
+    @apply text-2xl font-medium tracking-normal;
+  }
+  
+  h4 {
+    @apply text-xl font-medium tracking-normal;
+  }
+  
+  h5 {
+    @apply text-lg font-medium tracking-normal;
+  }
+  
+  h6 {
+    @apply text-base font-medium tracking-normal;
+  }
+  
+  p, li, td, th, div, span {
+    @apply font-normal text-base leading-relaxed;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-card rounded-lg shadow border border-border p-4;
+  }
+
+  .button-primary {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-md;
+  }
+
+  .button-secondary {
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary/90 px-4 py-2 rounded-md;
+  }
+
+  .loading-spinner {
+    @apply inline-flex items-center justify-center;
+    position: relative;
+    width: 24px;
+    height: 24px;
+  }
+  
+  .loading-spinner::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 2px solid rgba(0, 0, 0, 0.1);
+    border-top-color: var(--primary-color);
+    animation: spin 1s linear infinite;
+  }
+}
+
+/* Status colors */
+.status-success {
+  @apply text-green-600;
+}
+
+.status-error {
+  @apply text-red-600;
+}
+
+.status-pending {
+  @apply text-yellow-600;
+}
+
+/* Text styles */
+.text-bold {
+  @apply font-bold;
+}
+
+.animate-fade {
+  animation: fade 0.3s ease-in;
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}

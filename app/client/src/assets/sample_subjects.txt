@@ -1,0 +1,5 @@
+Your Monthly Newsletter - {{time}}
+Important Updates for {{emailname}} this Month
+Newsletter: New Features and Special Offers
+{{emailname}}, Check Out Our Latest Newsletter!
+This Month's Special Edition for {{domain}} Users
